@@ -493,8 +493,8 @@ class GaiaClusterMembers(object):
 		if (filename is None):
 			filename = self.photOutputFileName
 
-        idint = list(map(int, out['id']))
-		zfillN = int(np.ceil(np.log10(max(idint)))) 
+			idint = list(map(int, out['id']))
+			zfillN = int(np.ceil(np.log10(max(idint)))) 
 
 		# write to file with proper formatting
 		# fdec = np.abs(np.log10(self.photSigFloor)).astype(int)
