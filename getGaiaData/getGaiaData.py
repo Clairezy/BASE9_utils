@@ -103,6 +103,7 @@ class GaiaClusterMembers(object):
 		self.PMymax = 200 #mas/yr
 		self.PMybins = 400  
 		self.RVmean = None #could explicitly set the mean cluster RV for the initial guess
+		self.RVfitParameters= [1,1,1, 1,1,1] #normalization_cluster, center_cluster, sigma_cluster, normalization_field,center_fieldsigma_field
 		self.distance = None #could explicitly set the mean cluster distance for the initial guess
 		self.PMmean = [None, None] #could explicitly set the mean cluster PM for the initial guess
 		
@@ -191,13 +192,18 @@ class GaiaClusterMembers(object):
 		hrv, brv = np.histogram(x, bins = self.RVbins, range=(self.RVmin, self.RVmax))
 
 		#fit
-		RVguess = brv[np.argmax(hrv)]
+		#RVguess = brv[np.argmax(hrv)]
+		RVguess = self.RVfitParameters
+
 		if (self.RVmean is not None):
-			RVguess = self.RVmean
-		p_init = models.Gaussian1D(np.max(hrv), RVguess, 1) \
-				+ models.Gaussian1D(5, brv[np.argmax(hrv)], 50)
+			RVguesslist = list(RVguess)
+			RVguesslist[1] = self.RVmean
+		p_init = models.Gaussian1D(RVguess[0], RVguess[1], RVguess[2]) \
+				+ models.Gaussian1D(RVguess[3], RVguess[4], RVguess[5])
 		fit_p = self.fitter
 		rvG1D = fit_p(p_init, brv[:-1], hrv)
+		self.RVfitParameterOutput = rvG1D.parameters
+		
 		if (self.verbose > 1):
 			print(rvG1D)
 			print(rvG1D.parameters)
