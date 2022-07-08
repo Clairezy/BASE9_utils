@@ -582,7 +582,7 @@ class GaiaClusterMembers(object):
 			data = self.data
 
 		# I could specify the columns to use
-		f, ax = plt.subplots(figsize=(5,8))
+		f, ax = plt.subplots(figsize=(10,16))
 		ax.plot(data[x1] - data[x2], data[y],'.', color='lightgray')
 
 		#members
