@@ -105,7 +105,9 @@ class GaiaClusterMembers(object):
 		self.PMymax = 200 #mas/yr
 		self.PMybins = 400  
 		self.RVmean = None #could explicitly set the mean cluster RV for the initial guess
-		self.RVfitParameters= [1,1,1, 1,1,1] #normalization_cluster, center_cluster, sigma_cluster, normalization_field,center_fieldsigma_field
+		self.RVfit = (None,None,None, None,None,None) #normalization_cluster, center_cluster, sigma_cluster, normalization_field,center_field,sigma_field
+		self.PAfit = (None,None,10)
+		self.PMfit = (None,None,None,None,None, None,None,None,None,None)
 		self.distance = None #could explicitly set the mean cluster distance for the initial guess
 		self.PMmean = [None, None] #could explicitly set the mean cluster PM for the initial guess
 		
@@ -194,7 +196,7 @@ class GaiaClusterMembers(object):
 		self.data.write(filename, overwrite=True)  
 
 	def readDataFromFile(self, filename=None):
-		# sread ave the data from an ecsv file
+		#read the data from an ecsv file
 		if (filename is None):
 			filename = 'GaiaData.ecsv'
 
@@ -202,6 +204,14 @@ class GaiaClusterMembers(object):
 			print(f"Reading data from file {filename} ... ")
 
 		self.data = ascii.read(filename)  		
+
+    
+	def RVfit(self):
+        #gaussian default fit parameters for RV, uses user inputs if defined
+		RVParamsDefault = (1,1,1,1,1,1)
+		for i, foo in enumerate(self.RVfit):
+				if (foo is not None):
+					RVParamsDefault[i] = foo
 
 	def getRVMembers(self, savefig=True):
 		# calculate radial-velocity memberships
@@ -214,12 +224,11 @@ class GaiaClusterMembers(object):
 		hrv, brv = np.histogram(x, bins = self.RVbins, range=(self.RVmin, self.RVmax))
 
 		#fit
-		#RVguess = brv[np.argmax(hrv)]
-		RVguess = self.RVfitParameters
+		#RVParamsDefault[0] = brv[np.argmax(hrv)]
+		RVguess = self.RVParamsDefault
 
-		if (self.RVmean is not None):
-			RVguesslist = list(RVguess)
-			RVguesslist[1] = self.RVmean
+# 		if (self.RVmean is not None):
+# 			RVguesslist[1] = self.RVmean
 		p_init = models.Gaussian1D(RVguess[0], RVguess[1], RVguess[2]) \
 				+ models.Gaussian1D(RVguess[3], RVguess[4], RVguess[5])
 		fit_p = self.fitter
@@ -253,6 +262,14 @@ class GaiaClusterMembers(object):
 		self.PRV = Fc(x)/rvG1D(x)
 		self.data['PRV'] = self.PRV
 
+            
+	def PAfit(self):
+        #gaussian default fit parameters for PA, uses user inputs if defined
+		PAParamsDefault = (1,1,1)
+		for i, foo in enumerate(self.PAfit):
+				if (foo is not None):
+					PAParamsDefault[i] = foo
+
 	def getParallaxMembers(self, savefig=True):
 		# estimate memberships based on distance (could use Bailer Jones, but this simply uses inverted parallax)
 		if (self.verbose > 0):
@@ -264,10 +281,11 @@ class GaiaClusterMembers(object):
 		hpa, bpa = np.histogram(x, bins = self.dbins, range=(self.dmin, self.dmax))
 
 		#fit
-		dguess = bpa[np.argmax(hpa)]
-		if (self.distance is not None):
-			dguess = self.distance
-		p_init = models.Gaussian1D(np.max(hpa), dguess, 10)\
+		#dguess = bpa[np.argmax(hpa)]
+		dguess = self.PAParamsDefault
+# 		if (self.distance is not None):
+# 			dguess = self.distance
+		p_init = models.Gaussian1D(dguess[0], dguess[1], dguess[2])\
 				+ models.Polynomial1D(degree=self.dPolyD)
 		fit_p = self.fitter
 		pa1D = fit_p(p_init, bpa[:-1], hpa)
@@ -438,7 +456,14 @@ class GaiaClusterMembers(object):
 		#membership calculation
 		self.PPM = pmG2D_cluster(x,y)/(pmG2D_cluster(x,y) + pmG2D_field(x,y))
 		self.data['PPM'] = self.PPM						
-											
+	
+	def PMfit(self):
+        #gaussian default fit parameters for PA, uses user inputs if defined
+		PMParamsDefault = (1,1,1,1,1, 1,1,1,1,1)
+		for i, foo in enumerate(self.PMfit):
+				if (foo is not None):
+					PMParamsDefault[i] = foo
+
 	def getPMMembers(self, savefig=True):
 		if (self.verbose > 0):
 			print("finding proper-motion members ...")
@@ -457,14 +482,15 @@ class GaiaClusterMembers(object):
 									   range=[[self.PMxmin, self.PMxmax], [self.PMymin, self.PMymax]])
 		
 		#fit
-		PMxguess = x1D[np.argmax(hx1D)]
-		PMyguess = y1D[np.argmax(hy1D)]
-		if (self.PMmean[0] is not None):
-			PMxguess = self.PMmean[0]
-		if (self.PMmean[1] is not None):
-			PMyguess = self.PMmean[1]
-		p_init = models.Gaussian2D(np.max(h2D.flatten()), PMxguess, PMyguess, 1, 1)\
-				+ models.Gaussian2D(np.max(h2D.flatten()), 0, 0, 5, 5)
+# 		PMxguess = x1D[np.argmax(hx1D)]
+# 		PMyguess = y1D[np.argmax(hy1D)]
+# 		if (self.PMmean[0] is not None):
+# 			PMxguess = self.PMmean[0]
+# 		if (self.PMmean[1] is not None):
+# 			PMyguess = self.PMmean[1]
+		PMguess = self.PMParamsDefault
+		p_init = models.Gaussian2D(PMguess[0],PMguess[1], PMguess[2],PMguess[3],PMguess[4])\
+				+ models.Gaussian2D(PMguess[5], PMguess[6], PMguess[7], PMguess[8], PMguess[9])
 		# p_init = models.Gaussian2D(np.max(h2D.flatten()), PMxguess, PMyguess, 1, 1)\
 		# 		+ models.Polynomial2D(degree = 2)
 		fit_p = self.fitter
