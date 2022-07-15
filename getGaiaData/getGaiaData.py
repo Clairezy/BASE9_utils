@@ -105,9 +105,9 @@ class GaiaClusterMembers(object):
 		self.PMymax = 200 #mas/yr
 		self.PMybins = 400  
 		self.RVmean = None #could explicitly set the mean cluster RV for the initial guess
-		self.RVfit = (None,None,None, None,None,None) #normalization_cluster, center_cluster, sigma_cluster, normalization_field,center_field,sigma_field
-		self.PAfit = (None,None,10)
-		self.PMfit = (None,None,None,None,None, None,None,None,None,None)
+		self.RVParamsDefault = None #normalization_cluster, center_cluster, sigma_cluster, normalization_field,center_field,sigma_field
+		self.PAfit = None
+		self.PMfit = None
 		self.distance = None #could explicitly set the mean cluster distance for the initial guess
 		self.PMmean = [None, None] #could explicitly set the mean cluster PM for the initial guess
 		
@@ -205,14 +205,6 @@ class GaiaClusterMembers(object):
 
 		self.data = ascii.read(filename)  		
 
-    
-	def RVfit(self):
-        #gaussian default fit parameters for RV, uses user inputs if defined
-		RVParamsDefault = (1,1,1,1,1,1)
-		for i, foo in enumerate(self.RVfit):
-				if (foo is not None):
-					RVParamsDefault[i] = foo
-
 	def getRVMembers(self, savefig=True):
 		# calculate radial-velocity memberships
 		if (self.verbose > 0):
@@ -229,8 +221,13 @@ class GaiaClusterMembers(object):
 
 # 		if (self.RVmean is not None):
 # 			RVguesslist[1] = self.RVmean
-		p_init = models.Gaussian1D(RVguess[0], RVguess[1], RVguess[2]) \
+		if (self.RVParamsDefault is not None):
+			p_init = models.Gaussian1D(RVguess[0], RVguess[1], RVguess[2]) \
 				+ models.Gaussian1D(RVguess[3], RVguess[4], RVguess[5])
+		else:
+			p_init = models.Gaussian1D(np.max(hrv), RVguess, 1) \
+				+ models.Gaussian1D(5, brv[np.argmax(hrv)], 50)
+				
 		fit_p = self.fitter
 		rvG1D = fit_p(p_init, brv[:-1], hrv)
 		self.RVfitParameterOutput = rvG1D.parameters
