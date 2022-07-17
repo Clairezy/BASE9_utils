@@ -105,9 +105,9 @@ class GaiaClusterMembers(object):
 		self.PMymax = 200 #mas/yr
 		self.PMybins = 400  
 		self.RVmean = None #could explicitly set the mean cluster RV for the initial guess
-		self.RVParamsDefault = None #normalization_cluster, center_cluster, sigma_cluster, normalization_field,center_field,sigma_field
-		self.PAfit = None
-		self.PMfit = None
+		#self.RVparams= [None,None,None, None,None,None] #normalization_cluster, center_cluster, sigma_cluster, normalization_field,center_field,sigma_field
+		self.PAparams = None
+		self.PMparams = None
 		self.distance = None #could explicitly set the mean cluster distance for the initial guess
 		self.PMmean = [None, None] #could explicitly set the mean cluster PM for the initial guess
 		
@@ -205,7 +205,8 @@ class GaiaClusterMembers(object):
 
 		self.data = ascii.read(filename)  		
 
-	def getRVMembers(self, savefig=True):
+	def getRVMembers(self, camp=None, cmean=None, csig=None,  \
+											famp=None,fmean=None,fsig=None, savefig=True):
 		# calculate radial-velocity memberships
 		if (self.verbose > 0):
 			print("Finding radial-velocity members ... ")
@@ -214,30 +215,28 @@ class GaiaClusterMembers(object):
 		
 		#1D histogram
 		hrv, brv = np.histogram(x, bins = self.RVbins, range=(self.RVmin, self.RVmax))
+		
+		if (camp is None): camp= np.max(hrv)
+		if (cmean is None): cmean=  brv[np.argmax(hrv)]
+		if (csig is None): csig= 1
+		if (famp is None): famp= 5
+		if (fmean is None): fmean= brv[np.argmax(hrv)]
+		if (fsig is None): fsig= 50
 
-		#fit
-		#RVParamsDefault[0] = brv[np.argmax(hrv)]
-		RVguess = self.RVParamsDefault
-
-# 		if (self.RVmean is not None):
-# 			RVguesslist[1] = self.RVmean
-		if (self.RVParamsDefault is not None):
-			p_init = models.Gaussian1D(RVguess[0], RVguess[1], RVguess[2]) \
-				+ models.Gaussian1D(RVguess[3], RVguess[4], RVguess[5])
-		else:
-			p_init = models.Gaussian1D(np.max(hrv), RVguess, 1) \
-				+ models.Gaussian1D(5, brv[np.argmax(hrv)], 50)
+		p_init = models.Gaussian1D(camp, cmean, csig ) \
+				+ models.Gaussian1D(famp, fmean, fsig)
 				
 		fit_p = self.fitter
 		rvG1D = fit_p(p_init, brv[:-1], hrv)
 		self.RVfitParameterOutput = rvG1D.parameters
 		
 		if (self.verbose > 1):
+			print(f"Cluster amp: {camp}, Cluster mean: {cmean} Cluster sigma: {csig} \
+						Field amp: {famp}, Field mean: {fmean} Field sigma: {fsig}")
 			print(rvG1D)
 			print(rvG1D.parameters)
 
 		if (self.createPlots):
-			hrv, brv = np.histogram(x, bins = self.RVbins, range=(self.RVmin, self.RVmax))
 			xf = np.linspace(self.RVmin, self.RVmax, self.RVbins*10)
 			f, ax = plt.subplots()
 			ax.step(brv[:-1],hrv, color='black')
@@ -259,15 +258,7 @@ class GaiaClusterMembers(object):
 		self.PRV = Fc(x)/rvG1D(x)
 		self.data['PRV'] = self.PRV
 
-            
-	def PAfit(self):
-        #gaussian default fit parameters for PA, uses user inputs if defined
-		PAParamsDefault = (1,1,1)
-		for i, foo in enumerate(self.PAfit):
-				if (foo is not None):
-					PAParamsDefault[i] = foo
-
-	def getParallaxMembers(self, savefig=True):
+	def getParallaxMembers(self, amp=None, mean=None, sig=None, savefig=True):
 		# estimate memberships based on distance (could use Bailer Jones, but this simply uses inverted parallax)
 		if (self.verbose > 0):
 			print("Finding parallax members ... ")
@@ -277,16 +268,17 @@ class GaiaClusterMembers(object):
 		#1D histogram
 		hpa, bpa = np.histogram(x, bins = self.dbins, range=(self.dmin, self.dmax))
 
-		#fit
-		#dguess = bpa[np.argmax(hpa)]
-		dguess = self.PAParamsDefault
-# 		if (self.distance is not None):
-# 			dguess = self.distance
-		p_init = models.Gaussian1D(dguess[0], dguess[1], dguess[2])\
+		if (amp is None): amp= np.max(hpa)
+		if (mean is None): mean=  bpa[np.argmax(hpa)]
+		if (sig is None): sig= 10
+
+		p_init = models.Gaussian1D(amp, mean, sig)\
 				+ models.Polynomial1D(degree=self.dPolyD)
+
 		fit_p = self.fitter
 		pa1D = fit_p(p_init, bpa[:-1], hpa)
 		if (self.verbose > 1):
+			print(f"Amp: {amp}, Mean: {mean} Sigma: {sig} Polynomial Deg: {self.dPolyD}")
 			print(pa1D)
 			print(pa1D.parameters)
 
@@ -461,7 +453,8 @@ class GaiaClusterMembers(object):
 				if (foo is not None):
 					PMParamsDefault[i] = foo
 
-	def getPMMembers(self, savefig=True):
+	def getPMMembers(self, camp=None, cxmean=None, cymean=None, cxsig=None,cysig=None, \
+	 											famp=None, fxmean=None, fymean=None, fxsig=None,fysig=None, savefig=True):
 		if (self.verbose > 0):
 			print("finding proper-motion members ...")
 		
@@ -478,22 +471,28 @@ class GaiaClusterMembers(object):
 		h2D, x2D, y2D = np.histogram2d(x, y, bins=[self.PMxbins, self.PMybins], \
 									   range=[[self.PMxmin, self.PMxmax], [self.PMymin, self.PMymax]])
 		
-		#fit
-# 		PMxguess = x1D[np.argmax(hx1D)]
-# 		PMyguess = y1D[np.argmax(hy1D)]
-# 		if (self.PMmean[0] is not None):
-# 			PMxguess = self.PMmean[0]
-# 		if (self.PMmean[1] is not None):
-# 			PMyguess = self.PMmean[1]
-		PMguess = self.PMParamsDefault
-		p_init = models.Gaussian2D(PMguess[0],PMguess[1], PMguess[2],PMguess[3],PMguess[4])\
-				+ models.Gaussian2D(PMguess[5], PMguess[6], PMguess[7], PMguess[8], PMguess[9])
+		 
+		if (camp is None): camp= np.max(h2D.flatten())
+		if (cxmean is None): cxmean=  x1D[np.argmax(hx1D)]
+		if (cymean is None): cymean=  y1D[np.argmax(hy1D)]
+		if (cxsig is None): cxsig= 1
+		if (cysig is None): cysig= 1
+		if (famp is None): famp= np.max(h2D.flatten())
+		if (fxmean is None): fxmean=  0
+		if (fymean is None): fymean=  0
+		if (fxsig is None): fxsig= 5
+		if (fysig is None): fysig= 5
+
+		p_init = models.Gaussian2D(camp, cxmean,cymean,cxsig,cysig)\
+				+ models.Gaussian2D(famp,fxmean,fymean,fxsig,fysig)
 		# p_init = models.Gaussian2D(np.max(h2D.flatten()), PMxguess, PMyguess, 1, 1)\
 		# 		+ models.Polynomial2D(degree = 2)
 		fit_p = self.fitter
 		xf, yf = np.meshgrid(x2D[:-1], y2D[:-1], indexing='ij')
 		pmG2D = fit_p(p_init, xf, yf, h2D)
 		if (self.verbose > 1):
+			print(f"Cluster amp: {camp} Cluster xmean: {cxmean}  Cluster ymean: {cymean}  Cluster xsigma: {cxsig} Cluster ysigma: {cysig} \
+						Field amp: {famp}  Field xmean: {fxmean}  Field ymean: {fymean}  Field xsigma: {fxsig}  Field ysigma: {fysig}")
 			print(pmG2D)
 			print(pmG2D.parameters)
 			
@@ -673,6 +672,11 @@ class GaiaClusterMembers(object):
 		for c in ['sigG', 'sigG_BP', 'sigG_RP', 'sigg_ps', 'sigr_ps', 'sigi_ps', 'sigz_ps', 'sigy_ps', 'sigJ_2M', 'sigH_2M', 'sigKs_2M']:
 			out[c].fill_value = -9.9
 			out[c] = out[c].filled()
+
+		# for c in ['g_ps', 'r_ps', 'i_ps']:
+		# 	if out[c] < 13.5:
+
+
 
 		# expose this so it can be used elsewhere
 		self.members = members
