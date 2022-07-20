@@ -3,7 +3,7 @@
 
 from astroquery.gaia import Gaia
 from astropy.modeling import models, fitting
-from astropy.table import Table, Column
+from astropy.table import Table, Column, MaskedColumn
 import astropy.units as units
 from astropy.coordinates import SkyCoord
 from astropy.io import ascii
@@ -105,9 +105,9 @@ class GaiaClusterMembers(object):
 		self.PMymax = 200 #mas/yr
 		self.PMybins = 400  
 		self.RVmean = None #could explicitly set the mean cluster RV for the initial guess
-		#self.RVparams= [None,None,None, None,None,None] #normalization_cluster, center_cluster, sigma_cluster, normalization_field,center_field,sigma_field
-		self.PAparams = None
-		self.PMparams = None
+		self.RVparams= [None,None,None, None,None,None] #normalization_cluster, center_cluster, sigma_cluster, normalization_field,center_field,sigma_field
+		self.PAparams = [None, None, None]
+		self.PMparams = [None,None,None,None,None, None,None,None,None,None]
 		self.distance = None #could explicitly set the mean cluster distance for the initial guess
 		self.PMmean = [None, None] #could explicitly set the mean cluster PM for the initial guess
 		
@@ -205,13 +205,19 @@ class GaiaClusterMembers(object):
 
 		self.data = ascii.read(filename)  		
 
-	def getRVMembers(self, camp=None, cmean=None, csig=None,  \
+	def getRVMembers(self):
+		#wrapper function
+		self.runGetRVMembers(camp=self.RVparams[0], cmean=self.RVparams[1], csig=self.RVparams[2],  \
+														 famp=self.RVparams[3],fmean=self.RVparams[4],fsig=self.RVparams[5], savefig=True)
+
+	def runGetRVMembers(self, camp=None, cmean=None, csig=None,  \
 											famp=None,fmean=None,fsig=None, savefig=True):
 		# calculate radial-velocity memberships
 		if (self.verbose > 0):
 			print("Finding radial-velocity members ... ")
 		
 		x = self.data['radial_velocity']
+		x = x[~x.mask]
 		
 		#1D histogram
 		hrv, brv = np.histogram(x, bins = self.RVbins, range=(self.RVmin, self.RVmax))
@@ -231,8 +237,8 @@ class GaiaClusterMembers(object):
 		self.RVfitParameterOutput = rvG1D.parameters
 		
 		if (self.verbose > 1):
-			print(f"Cluster amp: {camp}, Cluster mean: {cmean} Cluster sigma: {csig} \
-						Field amp: {famp}, Field mean: {fmean} Field sigma: {fsig}")
+			print(f"Cluster amp: {camp}, Cluster mean: {cmean} Cluster sigma: {csig}")
+			print(f"Field amp: {famp}, Field mean: {fmean} Field sigma: {fsig}")
 			print(rvG1D)
 			print(rvG1D.parameters)
 
@@ -256,9 +262,13 @@ class GaiaClusterMembers(object):
 		Fc = models.Gaussian1D()
 		Fc.parameters = rvG1D.parameters[0:3]
 		self.PRV = Fc(x)/rvG1D(x)
-		self.data['PRV'] = self.PRV
+		self.data['PRV']= self.PRV
 
-	def getParallaxMembers(self, amp=None, mean=None, sig=None, savefig=True):
+	def getParallaxMembers(self):
+		#wrapper function
+		self.runGetParallaxMembers(amp=self.PAparams[0],mean=self.PAparams[1],sig=self.PAparams[2])
+
+	def runGetParallaxMembers(self, amp=None, mean=None, sig=None, savefig=True):
 		# estimate memberships based on distance (could use Bailer Jones, but this simply uses inverted parallax)
 		if (self.verbose > 0):
 			print("Finding parallax members ... ")
@@ -304,7 +314,6 @@ class GaiaClusterMembers(object):
 		Fc.parameters = pa1D.parameters[0:3]
 		self.PPa = Fc(x)/pa1D(x)
 		self.data['PPa'] = self.PPa
-
 
 	def getPMMembers2Step(self, savefig=True):
 
@@ -445,15 +454,13 @@ class GaiaClusterMembers(object):
 		#membership calculation
 		self.PPM = pmG2D_cluster(x,y)/(pmG2D_cluster(x,y) + pmG2D_field(x,y))
 		self.data['PPM'] = self.PPM						
-	
-	def PMfit(self):
-        #gaussian default fit parameters for PA, uses user inputs if defined
-		PMParamsDefault = (1,1,1,1,1, 1,1,1,1,1)
-		for i, foo in enumerate(self.PMfit):
-				if (foo is not None):
-					PMParamsDefault[i] = foo
 
-	def getPMMembers(self, camp=None, cxmean=None, cymean=None, cxsig=None,cysig=None, \
+	def getPMMembers(self):
+		#wrapper function
+		self.runGetPMMembers(camp=self.PMparams[0], cxmean=self.PMparams[1], cymean=self.PMparams[2], cxsig=self.PMparams[3],cysig=self.PMparams[4], \
+	 											famp=self.PMparams[5], fxmean=self.PMparams[6], fymean=self.PMparams[7], fxsig=self.PMparams[8],fysig=self.PMparams[9], savefig=True)
+
+	def runGetPMMembers(self, camp=None, cxmean=None, cymean=None, cxsig=None,cysig=None, \
 	 											famp=None, fxmean=None, fymean=None, fxsig=None,fysig=None, savefig=True):
 		if (self.verbose > 0):
 			print("finding proper-motion members ...")
