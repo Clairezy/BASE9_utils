@@ -216,6 +216,7 @@ class GaiaClusterMembers(object):
 		if (self.verbose > 0):
 			print("Finding radial-velocity members ... ")
 		
+		self.data['radial_velocity'].fill_value = np.nan
 		x = self.data['radial_velocity']
 		x = x[~x.mask]
 		
@@ -228,6 +229,10 @@ class GaiaClusterMembers(object):
 		if (famp is None): famp= 5
 		if (fmean is None): fmean= brv[np.argmax(hrv)]
 		if (fsig is None): fsig= 50
+
+		
+		#1D histogram
+		hrv, brv = np.histogram(x.filled(), bins = self.RVbins, range=(self.RVmin, self.RVmax))
 
 		p_init = models.Gaussian1D(camp, cmean, csig ) \
 				+ models.Gaussian1D(famp, fmean, fsig)
@@ -569,8 +574,16 @@ class GaiaClusterMembers(object):
 
 		# I'm not sure the best way to combine these
 		# We probably want to multiple them together, but if there is no membership (e.g., in RV), then we still keep the star
+		try:
+			self.data['PRV'].mask
+		except:
+			self.data['PRV'] = MaskedColumn(self.data['PRV'])
 		self.data['PRV'].fill_value = 1.
 		#self.data['PPa'].fill_value = 1.  # it appears that this is not a masked column
+		try:
+			self.data['PPM'].mask
+		except:
+			self.data['PPM'] = MaskedColumn(self.data['PPM'])
 		self.data['PPM'].fill_value = 1.
 
 		self.data['membership'] = np.nan_to_num(self.data['PRV'].filled(), nan=1)*\
@@ -594,8 +607,8 @@ class GaiaClusterMembers(object):
 
 		ax.set_ylim(22, 10)
 		ax.set_xlim(-1, 3)
-		ax.set_xlabel('(g_ps - i_ps)', fontsize=16)
-		ax.set_ylabel('g_ps', fontsize=16)
+		ax.set_xlabel(x1 + ' - ' + x2, fontsize=16)
+		ax.set_ylabel(y, fontsize=16)
 		if (savefig):
 			f.savefig(self.plotNameRoot + 'CMD.pdf', format='PDF', bbox_inches='tight')
 
