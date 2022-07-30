@@ -218,7 +218,6 @@ class GaiaClusterMembers(object):
 		
 		self.data['radial_velocity'].fill_value = np.nan
 		x = self.data['radial_velocity']
-		x = x[~x.mask]
 		
 		#1D histogram
 		hrv, brv = np.histogram(x, bins = self.RVbins, range=(self.RVmin, self.RVmax))
@@ -574,16 +573,8 @@ class GaiaClusterMembers(object):
 
 		# I'm not sure the best way to combine these
 		# We probably want to multiple them together, but if there is no membership (e.g., in RV), then we still keep the star
-		try:
-			self.data['PRV'].mask
-		except:
-			self.data['PRV'] = MaskedColumn(self.data['PRV'])
 		self.data['PRV'].fill_value = 1.
 		#self.data['PPa'].fill_value = 1.  # it appears that this is not a masked column
-		try:
-			self.data['PPM'].mask
-		except:
-			self.data['PPM'] = MaskedColumn(self.data['PPM'])
 		self.data['PPM'].fill_value = 1.
 
 		self.data['membership'] = np.nan_to_num(self.data['PRV'].filled(), nan=1)*\

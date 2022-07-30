@@ -1,0 +1,17 @@
+Deploying job ...qnode8061
+/projects/p31721/czwicker/NGC6819_run12_faint_mass1
+
+Bayesian Analysis of Stellar Evolution
+Seed: 1996593203
+Reading models... Done.
+
+Model boundaries are (6.979, 10.129) log years.
+Binaries are ON
+
+Running Stage 1 burnin... Complete (acceptanceRatio = 0.320)
+
+Running Stage 2 (adaptive) burnin...
+    Acceptance ratio: 0.330. Trying for trend.
+  Leaving adaptive burnin early with an acceptance ratio of 0.220 (iteration 300)
+
+Starting adaptive run...  Preliminary acceptanceRatio = 0.039
