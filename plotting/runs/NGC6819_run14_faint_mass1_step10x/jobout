@@ -24,3 +24,6 @@ Running Stage 2 (adaptive) burnin...
   Leaving adaptive burnin early with an acceptance ratio of 0.200 (iteration 1200)
 
 Starting adaptive run...  Preliminary acceptanceRatio = 0.004
+
+Final acceptance ratio: 0.171
+done

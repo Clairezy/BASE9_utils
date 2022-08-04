@@ -26,3 +26,7 @@ __pycache__
 *.res.org
 *.ecsv
 srun*.sh
+*.ms
+*.wd
+*.membership
+*.massSamples

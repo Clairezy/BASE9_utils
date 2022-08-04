@@ -1,0 +1,12 @@
+
+***Warning: "G" is not available in the selected WD Atmosphere model
+            This is non-fatal if you aren't using the WD models
+9.5578 >? 6.979
+9.5578 <? 10.129
+0.712863 >? -2
+0.712863 <? 0.6
+9.63274 >? 6.979
+9.63274 <? 10.129
+0.883188 >? -2
+0.883188 <? 0.6
+slurmstepd: error: *** JOB 7041337 ON qnode8041 CANCELLED AT 2022-08-02T22:45:16 ***

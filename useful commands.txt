@@ -1,0 +1,10 @@
+paste NGC6819_0.membership NGC6819_1.membership NGC6819_2.membership NGC6819_3.membership NGC6819_4.membership NGC6819_5.membership NGC6819_6.membership NGC6819_7.membership NGC6819_8.membership NGC6819_9.membership NGC6819_10.membership NGC6819_11.membership NGC6819_12.membership NGC6819_13.membership NGC6819_14.membership NGC6819_15.membership NGC6819_16.membership NGC6819_17.membership NGC6819_18.membership NGC6819_19.membership NGC6819_20.membership NGC6819_21.membership NGC6819_22.membership NGC6819_23.membership NGC6819_24.membership NGC6819_25.membership NGC6819_26.membership NGC6819_27.membership > NGC6819.membership
+
+
+paste -d' ' NGC6819_*.massSamples > NGC6819.massSamples
+
+python dividePhot.py --res NGC6819.res --phot NGC6819.phot --yaml base9.yaml --nthreads 50
+
+awk '{print $2,,$3,$4,$5,$6,$7,$8,$9,$16,$17,$18,$19,$20,$24,$25,$26,$27,$28}' NGC188.GPT.phot>NGC.phot
+
+cut -d' ' -f2- NGC6819.phot > NGC6819.new.phot
