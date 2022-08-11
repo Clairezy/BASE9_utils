@@ -9,3 +9,6 @@
 9.72491 <? 10.129
 0.726309 >? -2
 0.726309 <? 0.6
+gsl: cholesky.c:157: ERROR: matrix must be positive definite
+Default GSL error handler invoked.
+/var/spool/slurmd/job6715683/slurm_script: line 21: 203210 Aborted                 (core dumped) singlePopMcmc

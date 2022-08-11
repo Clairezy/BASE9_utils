@@ -1,0 +1,10 @@
+Deploying job ...qnode8067
+/projects/p31721/czwicker/NGC6819_run14_faint_mass1_step10x/sampleMassSplit_run10phot_run14
+
+Seed: 1089928696
+Reading models... Done.
+
+Warming up generator... Done.
+Generated 10000 values.
+Completed successfully
+==================== done with sampleMass ====================

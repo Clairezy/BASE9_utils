@@ -25,3 +25,12 @@ Running Stage 2 (adaptive) burnin...
     Acceptance ratio: 0.110. Retrying.
     Acceptance ratio: 0.050. Retrying.
     Acceptance ratio: 0.190. Retrying.
+    Acceptance ratio: 0.240. Trying for trend.
+    Acceptance ratio: 0.140. Retrying.
+    Acceptance ratio: 0.180. Retrying.
+    Acceptance ratio: 0.160. Retrying.
+    Acceptance ratio: 0.300. Trying for trend.
+    Acceptance ratio: 0.480. Retrying.
+
+Starting adaptive run...  Preliminary acceptanceRatio = 0.002
+done

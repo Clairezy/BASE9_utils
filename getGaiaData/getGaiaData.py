@@ -3,7 +3,7 @@
 
 from astroquery.gaia import Gaia
 from astropy.modeling import models, fitting
-from astropy.table import Table, Column, MaskedColumn, vstack
+from astropy.table import Table, Column, MaskedColumn
 import astropy.units as units
 from astropy.coordinates import SkyCoord
 from astropy.io import ascii
@@ -20,7 +20,6 @@ class GaiaClusterMembers(object):
 	'''
 	This Class will grab data from the Gaia archive.  The user must provide the RA and Dec values,
 	and the Class will return the full catalog and 
-
 	RA, Dec and radius should be provided in decimal degrees.
 	
 	'''
@@ -218,6 +217,7 @@ class GaiaClusterMembers(object):
 		
 		self.data['radial_velocity'].fill_value = np.nan
 		x = self.data['radial_velocity']
+		#x = x[~x.mask]
 		
 		#1D histogram
 		hrv, brv = np.histogram(x, bins = self.RVbins, range=(self.RVmin, self.RVmax))
@@ -260,7 +260,7 @@ class GaiaClusterMembers(object):
 			ax.axvline(rvG1D.parameters[1], color='tab:purple', ls='dotted')
 			ax.annotate(f'RV = {rvG1D.parameters[1]:.1f} km/s', (rvG1D.parameters[1] + + 0.05*(self.RVmax - self.RVmin), 0.95*max(hrv)) )
 			if (savefig):
-				f.savefig(self.plotNameRoot + 'RVHist.pdf', format='PDF', bbox_inches='tight')
+				f.savefig(self.plotNameRoot + 'RVHist.pdf', format='PDF', bbox_inches='tight',dpi=300)
 			
 		#membership calculation
 		Fc = models.Gaussian1D()
@@ -311,7 +311,7 @@ class GaiaClusterMembers(object):
 			ax.axvline(pa1D.parameters[1], color='tab:purple', ls='dotted')
 			ax.annotate(f'd = {pa1D.parameters[1]:.1f} pc', (pa1D.parameters[1] + 0.05*(self.dmax - self.dmin), 0.95*max(hpa)) )
 			if (savefig):
-				f.savefig(self.plotNameRoot + 'dHist.pdf', format='PDF', bbox_inches='tight')
+				f.savefig(self.plotNameRoot + 'dHist.pdf', format='PDF', bbox_inches='tight', dpi=300)
 			
 		#membership calculation
 		Fc = models.Gaussian1D()
@@ -496,17 +496,6 @@ class GaiaClusterMembers(object):
 
 		p_init = models.Gaussian2D(camp, cxmean,cymean,cxsig,cysig)\
 				+ models.Gaussian2D(famp,fxmean,fymean,fxsig,fysig)
-
-		#fit
-		PMxguess = x1D[np.argmax(hx1D)]
-		PMyguess = y1D[np.argmax(hy1D)]
-		if (self.PMmean[0] is not None):
-			PMxguess = self.PMmean[0]
-		if (self.PMmean[1] is not None):
-			PMyguess = self.PMmean[1]
-		p_init = models.Gaussian2D(np.max(h2D.flatten())/10., PMxguess, PMyguess, 1, 1)\
-				+ models.Gaussian2D(np.max(h2D.flatten()), 0, 0, 5, 5)
-
 		# p_init = models.Gaussian2D(np.max(h2D.flatten()), PMxguess, PMyguess, 1, 1)\
 		# 		+ models.Polynomial2D(degree = 2)
 		fit_p = self.fitter
@@ -553,15 +542,6 @@ class GaiaClusterMembers(object):
 			ax2.contourf(x2D[:-1], y2D[:-1], pmG2D(xf, yf).T, cmap=cm.RdPu, bins = 20, \
 						 norm=mplColors.LogNorm(), alpha = 0.3)
 
-			# add in other members as a check
-			members = Table(names = self.data.colnames)
-			if ('PRV' in self.data.colnames):
-				members = vstack([members, self.data[np.logical_and(self.data['PRV'] > self.membershipMin, ~self.data['PRV'].mask)]])
-			if ('PPa' in self.data.colnames):
-				members = vstack([members, self.data[self.data['PPa'] > self.membershipMin]])
-
-			ax2.scatter(members['pmra'], members['pmdec'], color='cyan', marker='.')
-
 			ax1.set_xlim(self.PMxmin, self.PMxmax)
 			ax2.set_xlim(self.PMxmin, self.PMxmax)
 			ax2.set_ylim(self.PMymin, self.PMymax)
@@ -579,7 +559,7 @@ class GaiaClusterMembers(object):
 			plt.setp(ax3.get_xticklabels()[0], visible=False)
 			f.subplots_adjust(hspace=0., wspace=0.)
 			if (savefig):
-				f.savefig(self.plotNameRoot + 'PMHist.pdf', format='PDF', bbox_inches='tight')
+				f.savefig(self.plotNameRoot + 'PMHist.pdf', format='PDF', bbox_inches='tight', dpi=300)
 
 		#membership calculation
 		Fc = models.Gaussian2D()
@@ -593,6 +573,10 @@ class GaiaClusterMembers(object):
 
 		# I'm not sure the best way to combine these
 		# We probably want to multiple them together, but if there is no membership (e.g., in RV), then we still keep the star
+		try:
+			self.data['PRV'].mask
+		except:
+			self.data['PRV'] = MaskedColumn(self.data['PRV'])
 		self.data['PRV'].fill_value = 1.
 		#self.data['PPa'].fill_value = 1.  # it appears that this is not a masked column
 		self.data['PPM'].fill_value = 1.
@@ -616,7 +600,7 @@ class GaiaClusterMembers(object):
 		mask = (data[m] > self.membershipMin) 
 		ax.plot(data[mask][x1] - data[mask][x2], data[mask][y],'.', color='deeppink')
 
-		ax.set_ylim(22, min(data[mask][y]))
+		ax.set_ylim(22, 10)
 		ax.set_xlim(-1, 3)
 		ax.set_xlabel(x1 + ' - ' + x2, fontsize=16)
 		ax.set_ylabel(y, fontsize=16)
@@ -654,7 +638,7 @@ class GaiaClusterMembers(object):
 		# If we want to include Gaia photometry, we need to include errors.  
 		# Maybe we can use "typical errors" from here: https://gea.esac.esa.int/archive/documentation/GEDR3/index.html
 		# add the extra columns for BASE-9
-		members['mass1'] = np.zeros(len(members)) + 1.1 #if we know masses, these could be added
+		members['mass1'] = np.ones(len(members)) #if we know masses, these could be added
 		members['massRatio'] = np.zeros(len(members)) #if we know mass ratios, these could be added
 		members['stage1'] = np.zeros(len(members)) + 1 #set to 1 for MS and giant stars (use 2(?) for WDs)
 		members['useDBI'] = np.zeros(len(members)) + 1 #set to 1 to use during burn-in.  May want to improve to remove anomalous stars
