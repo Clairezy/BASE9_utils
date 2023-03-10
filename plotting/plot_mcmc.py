@@ -103,7 +103,7 @@ ax3.set(xlabel='Av (mmag)')
 # set x-limits
 ax0.set_xlim([age1,age2])
 ax1.set_xlim([feh1,feh2])
-ax2.set_xlim([plx1,plx2])
+ax2.set_xlim([(plx1+(1.4*std_plx)),(plx2-(1.4*std_plx))]) #made change here to adjust x label -Claire
 ax3.set_xlim([av1*1000,av2*1000])
 
 # placement and labels calculations

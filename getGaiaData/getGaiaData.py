@@ -287,6 +287,7 @@ class GaiaClusterMembers(object):
 		while len(membership) < 500 and 1e-6 < self.membershipMin:
 			print ('Lowering membership minimum')
 			self.membershipMin = self.membershipMin/10.
+			print(self.membershipMin)
 			membership = [x for x in data if x >= self.membershipMin]
 			# if len(membership) < 100:
 			# 	self.membershipMin = 0.00001
@@ -380,7 +381,7 @@ class GaiaClusterMembers(object):
 			ax.axvline(rvG1D.parameters[1], color='tab:purple', ls='dotted')
 			ax.annotate(f'RV = {rvG1D.parameters[1]:.1f} km/s', (rvG1D.parameters[1] + + 0.05*(self.RVmax - self.RVmin), 0.95*max(hrv)) )
 			if (savefig):
-				f.savefig(self.plotNameRoot + 'RVHist.pdf', format='PDF', bbox_inches='tight')
+				f.savefig(self.plotNameRoot + 'RVHist.png', format='png', bbox_inches='tight', dpi=300)
 			
 		#membership calculation
 		Fc = models.Gaussian1D()
@@ -535,7 +536,7 @@ class GaiaClusterMembers(object):
 			ax.axvline(pa1D.parameters[1], color='tab:purple', ls='dotted')
 			ax.annotate(f'd = {pa1D.parameters[1]:.1f} pc', (pa1D.parameters[1] + 0.05*(self.dmax - self.dmin), 0.95*max(hpa)) )
 			if (savefig):
-				f.savefig(self.plotNameRoot + 'dHist.pdf', format='PDF', bbox_inches='tight')
+				f.savefig(self.plotNameRoot + 'dHist.png', format='png', bbox_inches='tight', dpi=300)
 			
 		#membership calculation
 		Fc = models.Gaussian1D()
@@ -648,7 +649,8 @@ class GaiaClusterMembers(object):
 			ax3.set_xlim(-.05*max(hy1D),max(hy1D)+.1*max(hy1D))
 
 			ax2.scatter(x,y,color='darkgray',marker='.')
-			ax2.scatter(members['pmra'], members['pmdec'], color='cyan', marker='.')
+			ax2.scatter(members['pmra'], members['pmdec'], color='cyan', marker='+')
+			ax2.legend(['Test'])
 
 			ax1.set_xlim(PMxmin, PMxmax)
 			ax2.set_xlim(PMxmin, PMxmax)
@@ -662,7 +664,7 @@ class GaiaClusterMembers(object):
 			plt.setp(ax3.get_xticklabels()[0], visible=False)
 			f.subplots_adjust(hspace=0., wspace=0.)
 			if (savefig):
-				f.savefig(self.plotNameRoot + 'PMHist.pdf', format='PDF', bbox_inches='tight')
+				f.savefig(self.plotNameRoot + 'PMHist.png', format='png', bbox_inches='tight', dpi=300)
 
 		#membership calculation
 		RA_mems = gauss(x, *x_params[0][:3])/quad_norm(x, *x_params[0])
@@ -761,7 +763,8 @@ class GaiaClusterMembers(object):
 			ax3.set_xlim(-.05*max(hy1D),max(hy1D)+.1*max(hy1D))
 
 			ax2.scatter(x,y,color='darkgray',marker='.')
-			ax2.scatter(members['pmra'], members['pmdec'], color='cyan', marker='.')
+			ax2.scatter(members['pmra'], members['pmdec'], color='cyan', marker='+')
+			ax2.legend(['Full Gaia Sample', 'Cluster Members'], fontsize=11)
 
 			ax1.set_xlim(PMxmin, PMxmax)
 			ax2.set_xlim(PMxmin, PMxmax)
@@ -775,7 +778,7 @@ class GaiaClusterMembers(object):
 			plt.setp(ax3.get_xticklabels()[0], visible=False)
 			f.subplots_adjust(hspace=0., wspace=0.)
 			if (savefig):
-				f.savefig(self.plotNameRoot + 'PMHist.pdf', format='PDF', bbox_inches='tight')
+				f.savefig(self.plotNameRoot + 'PMHist.png', format='png', bbox_inches='tight', dpi=300)
 
 		#membership calculation
 		RA_mems = gauss(x, *x_params[0][:3])/tri_norm(x, *x_params[0])
@@ -816,7 +819,7 @@ class GaiaClusterMembers(object):
 		ax.set_xlabel(x1+'-'+x2, fontsize=16)
 		ax.set_ylabel(y, fontsize=16)
 		if (savefig):
-			f.savefig(self.plotNameRoot + 'CMD.pdf', format='PDF', bbox_inches='tight')
+			f.savefig(self.plotNameRoot + 'CMD.png', format='png', bbox_inches='tight', dpi=300)
 
 	def addBASE9IDs(self):
 		# sort the data by distance from the (user defined) center and also by magnitude to generate IDs

@@ -10,7 +10,7 @@ def readGaiaData(filepath: str) -> pd.DataFrame:
     return data[['source_id', 'G', 'G_BP', 'G_RP', 'ra', 'dec']]
 
 def findSeparation(dataframe: pd.DataFrame) -> pd.DataFrame:
-    c1 = SkyCoord(np.deg2rad(dataframe['ra']),np.deg2rad(dataframe['dec']),unit='rad')
-    c2 = SkyCoord(np.deg2rad(295.3250),np.deg2rad(40.19),unit='rad')
+    c1 = SkyCoord((dataframe['ra']),(dataframe['dec']),unit='deg')
+    c2 = SkyCoord((295.3250),(40.19),unit='deg')
     distance = c1.separation(c2).value
     return distance 

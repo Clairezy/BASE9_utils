@@ -32,3 +32,4 @@ srun*.sh
 */run*/**
 *.model
 *.png
+*.txt
