@@ -33,3 +33,4 @@ srun*.sh
 *.model
 *.png
 *.txt
+*.df
