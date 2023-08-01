@@ -8,9 +8,10 @@ def readGaiaData(filepath: str) -> pd.DataFrame:
     data = pd.read_csv(filepath, sep='\s+', skiprows=180)
     data = data.rename(columns={'phot_g_mean_mag': 'G', 'phot_bp_mean_mag': 'G_BP', 'phot_rp_mean_mag': 'G_RP'})
     return data[['source_id', 'G', 'G_BP', 'G_RP', 'ra', 'dec']]
-
+#295.32291667, 40.19638889
+#295.3250, 40.19
 def findSeparation(dataframe: pd.DataFrame) -> pd.DataFrame:
     c1 = SkyCoord((dataframe['ra']),(dataframe['dec']),unit='deg')
-    c2 = SkyCoord((295.3250),(40.19),unit='deg')
+    c2 = SkyCoord((295.32291667),(40.19638889),unit='deg')
     distance = c1.separation(c2).value
     return distance 
